@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Plus, LogOut, FolderOpen, ChevronDown } from "lucide-react";
+import { Plus, LogOut, FolderOpen, ChevronDown, Download } from "lucide-react";
 import { AuthDialog } from "@/components/auth/AuthDialog";
 import { signOut } from "@/actions";
 import { getProjects } from "@/actions/get-projects";
@@ -21,6 +21,8 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { useFileSystem } from "@/lib/contexts/file-system-context";
+import { downloadProjectZip } from "@/lib/download-zip";
 
 interface HeaderActionsProps {
   user?: {
@@ -39,6 +41,7 @@ interface Project {
 
 export function HeaderActions({ user, projectId }: HeaderActionsProps) {
   const router = useRouter();
+  const { getAllFiles } = useFileSystem();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
   const [projectsOpen, setProjectsOpen] = useState(false);
@@ -81,6 +84,12 @@ export function HeaderActions({ user, projectId }: HeaderActionsProps) {
 
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  const handleDownload = () => {
+    const files = getAllFiles();
+    const name = currentProject?.name ?? "uigen-project";
+    downloadProjectZip(files, name);
   };
 
   const handleNewDesign = async () => {
@@ -159,6 +168,18 @@ export function HeaderActions({ user, projectId }: HeaderActionsProps) {
         <Plus className="h-4 w-4" />
         New Design
       </Button>
+
+      {projectId && (
+        <Button
+          variant="outline"
+          className="flex items-center gap-2 h-8"
+          onClick={handleDownload}
+          title="Download project as ZIP"
+        >
+          <Download className="h-4 w-4" />
+          Download
+        </Button>
+      )}
 
       <Button
         variant="ghost"
